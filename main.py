@@ -26,7 +26,7 @@ led = machine.Pin('WL_GPIO0', machine.Pin.OUT) # On-board LED
 timer = Timer()
 
 # Load Cell ADC
-load_cell = machine.ADC(27) # ADC1 / GP27
+load_cell = machine.ADC(27) # ADC1 / GP27 #4,12,15
 
 #######################################
 
@@ -60,7 +60,7 @@ def connect_broker():
         connect_broker()
     
 def transmit_data():
-    conversion = 4 * (200 / 65535)
+    conversion = 2.5 * (100 / 65535)
     while True:
         raw_data = load_cell.read_u16()
         converted_data = raw_data * conversion
