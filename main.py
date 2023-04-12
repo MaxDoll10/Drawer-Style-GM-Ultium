@@ -7,14 +7,16 @@ from mqtt import MQTTClient
 
 #######################################
 
-SSID = 'netis_3AACDE'
+SSID = 'netis_24775C'
 PASS = 'password'
 
 #######################################
 
 mqtt_server = '192.168.1.2' # Broker
 client_id = 'rpi_pico_2'
-topic_pub = b'prj3c_test_2' # Topic
+topic_pub_1 = b'test_1' # Topic
+#topic_pub_2 = b'test_2'
+#topic_pub_3 = b'test_3'
 
 # Create MQTT client object
 client = MQTTClient(client_id, mqtt_server, keepalive=3600)
@@ -26,7 +28,9 @@ led = machine.Pin('WL_GPIO0', machine.Pin.OUT) # On-board LED
 timer = Timer()
 
 # Load Cell ADC
-load_cell = machine.ADC(27) # ADC1 / GP27 #4,12,15
+load_cell_1 = machine.ADC(4)
+#load_cell_2 = machine.Pin(12)
+#load_cell_3 = machine.Pin(15)
 
 #######################################
 
@@ -62,11 +66,21 @@ def connect_broker():
 def transmit_data():
     conversion = 2.5 * (100 / 65535)
     while True:
-        raw_data = load_cell.read_u16()
-        converted_data = raw_data * conversion
-        data = bytes(str(converted_data), 'utf-8')
-        print('Sending: ', data, ' (converted: ', converted_data, ', raw: ', raw_data, ')')
-        client.publish(topic_pub, data)
+        raw_data_1 = load_cell_1.read_u16()
+        #raw_data_2 = load_cell_2.read_u16()
+        #raw_data_3 = load_cell_3.read_u16()
+        converted_data_1 = raw_data_1 * conversion
+        #converted_data_2 = raw_data_2 * conversion
+        #converted_data_3 = raw_data_3 * conversion
+        data_1 = bytes(str(converted_data_1), 'utf-8')
+        #data_2 = bytes(str(converted_data_2), 'utf-8')
+        #data_3 = bytes(str(converted_data_3), 'utf-8')
+        print('Sending: ', data_1, ' (converted: ', converted_data_1, ', raw: ', raw_data_1, ')')
+        #print('Sending: ', data_2, ' (converted: ', converted_data_2, ', raw: ', raw_data_2, ')')
+        #print('Sending: ', data_3, ' (converted: ', converted_data_3, ', raw: ', raw_data_3, ')')
+        client.publish(topic_pub_1, data_1)
+        #client.publish(topic_pub_2, data_2)
+        #client.publish(topic_pub_3, data_3)
         print('sent.')
         time.sleep(2)
     
@@ -80,3 +94,6 @@ connect_broker()
 
 # Begin LED blink
 timer.init(freq=2.5, mode=Timer.PERIODIC, callback=blink) 
+
+# Begin Load Cell Transmission
+transmit_data()
