@@ -4,6 +4,8 @@
 import network, time
 from machine import Pin, Timer
 from mqtt import MQTTClient
+from hx711 import HX711
+
 
 #######################################
 
@@ -12,11 +14,11 @@ PASS = 'password'
 
 #######################################
 
-mqtt_server = '192.168.1.2' # Broker
-client_id = 'rpi_pico_2'
+mqtt_server = '192.168.0.3' # Broker
+client_id = 'rpi_pico'
 topic_pub_1 = b'test_1' # Topic
-#topic_pub_2 = b'test_2'
-#topic_pub_3 = b'test_3'
+topic_pub_2 = b'test_2'
+topic_pub_3 = b'test_3'
 
 # Create MQTT client object
 client = MQTTClient(client_id, mqtt_server, keepalive=3600)
@@ -28,9 +30,11 @@ led = machine.Pin('WL_GPIO0', machine.Pin.OUT) # On-board LED
 timer = Timer()
 
 # Load Cell ADC
-load_cell_1 = machine.ADC(4)
-#load_cell_2 = machine.Pin(12)
-#load_cell_3 = machine.Pin(15)
+load_cell_1 = machine.ADC(26)
+load_cell_2 = machine.ADC(27)
+load_cell_3 = machine.ADC(28)
+hx_1 = HX711(d_out = 26, pd_sck = 19)
+
 
 #######################################
 
@@ -66,21 +70,22 @@ def connect_broker():
 def transmit_data():
     conversion = 2.5 * (100 / 65535)
     while True:
-        raw_data_1 = load_cell_1.read_u16()
-        #raw_data_2 = load_cell_2.read_u16()
-        #raw_data_3 = load_cell_3.read_u16()
+        raw_data_1 = hx_1.read()
+        #raw_data_1 = load_cell_1.read_u16()
+        raw_data_2 = load_cell_2.read_u16()
+        raw_data_3 = load_cell_3.read_u16()
         converted_data_1 = raw_data_1 * conversion
-        #converted_data_2 = raw_data_2 * conversion
-        #converted_data_3 = raw_data_3 * conversion
+        converted_data_2 = raw_data_2 * conversion
+        converted_data_3 = raw_data_3 * conversion
         data_1 = bytes(str(converted_data_1), 'utf-8')
-        #data_2 = bytes(str(converted_data_2), 'utf-8')
-        #data_3 = bytes(str(converted_data_3), 'utf-8')
+        data_2 = bytes(str(converted_data_2), 'utf-8')
+        data_3 = bytes(str(converted_data_3), 'utf-8')
         print('Sending: ', data_1, ' (converted: ', converted_data_1, ', raw: ', raw_data_1, ')')
-        #print('Sending: ', data_2, ' (converted: ', converted_data_2, ', raw: ', raw_data_2, ')')
-        #print('Sending: ', data_3, ' (converted: ', converted_data_3, ', raw: ', raw_data_3, ')')
+        print('Sending: ', data_2, ' (converted: ', converted_data_2, ', raw: ', raw_data_2, ')')
+        print('Sending: ', data_3, ' (converted: ', converted_data_3, ', raw: ', raw_data_3, ')')
         client.publish(topic_pub_1, data_1)
-        #client.publish(topic_pub_2, data_2)
-        #client.publish(topic_pub_3, data_3)
+        client.publish(topic_pub_2, data_2)
+        client.publish(topic_pub_3, data_3)
         print('sent.')
         time.sleep(2)
     
